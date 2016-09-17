@@ -56,7 +56,7 @@ def post_facebook_message(fbid,message_text):
 	
 	#output_text = wikisearch(message_text)
 	output_text = chuck()
-	output_text = output_textt.replace("Chuck Norris", "Rajnikanth")
+	output_text = output_text.replace("Chuck Norris", "Rajnikanth")
 
 	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
