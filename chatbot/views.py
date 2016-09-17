@@ -20,6 +20,7 @@ PAGE_ACCESS_TOKEN = 'EAAZAyhaPaTVoBALdXcRNojTqUTCZBdpNxHicITYZBFfw8jtqyMwGRGf2bE
 
 def index(request):
 	post_facebook_message('1406994739523556','hi')
+	handle_postback('1406994739523556','hi')
 	#t = request.GET['text'] or 'foo'
 	output_text = chuck()
 	return HttpResponse(output_text)
@@ -100,6 +101,13 @@ def post_facebook_message(fbid,message_text):
 	
 	print status.json()
 
+def handle_postback(fbid,payload):
+	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+	output_text = 'Payload Recieved: ' + payload
+
+	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+		
 
 class MyChatBotView(generic.View):
 	def get (self, request, *args, **kwargs):
@@ -118,14 +126,21 @@ class MyChatBotView(generic.View):
 
 		for entry in incoming_message['entry']:
 			for message in entry['messaging']:
-				print message
+
+				try:
+					if 'postback' in message:
+						handle_postback(message['sender']['id'],message['postback']['payload'])
+					else:
+						pass
+				except Exception as e:
+					print e
+				
 				try:
 					sender_id = message['sender']['id']
 					message_text = message['message']['text']
 					post_facebook_message(sender_id,message_text) 
 				except Exception as e:
 					print e
-					pass
 
 		return HttpResponse()  
 
