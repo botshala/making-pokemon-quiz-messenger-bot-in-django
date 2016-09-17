@@ -15,14 +15,27 @@ import re
 # Create your views here.
 
 VERIFY_TOKEN = '7thseptember2016'
-PAGE_ACCESS_TOKEN = 'EAAWSz5ubdJ4BAJMGZAUrV01OaDdZA2GkYZBhKToKvvNFK7GDvcI6efhZCsqaP2ZCiPRbjFFZBbbXrcYnuqbvFCM8tQZCIk4jvvCBwixXlDXCjPoJOw8WxgbgthuUzQvI8VscZC6WO8DE2sUZAGIW6XuQZCq6ZAlJdEumOmktNP0i6MrEwZDZD'
+PAGE_ACCESS_TOKEN = 'EAAZAyhaPaTVoBALdXcRNojTqUTCZBdpNxHicITYZBFfw8jtqyMwGRGf2bEO9EqF9P2umFknFXKpbBoZAFwx3myMUDnZC6RnC5xeR3qFGOFTxTs2tP1OyIZAxeyyddoWlSj5qSLcpCunfPZA0drzhlAp8HlMIpMFKos9MbAaB9iDjQZDZD'
+
+
+def index(request):
+	#t = request.GET['text'] or 'foo'
+	output_text = chuck()
+	return HttpResponse(output_text)
+
+def chuck():
+	url = 'https://api.chucknorris.io/jokes/random'
+	resp = requests.get(url=url).text
+	data = json.loads(resp)
+	return data['value']
+
 
 def wikisearch(title='tomato'):
     url = 'https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=%s'%(title)
     resp = requests.get(url=url).text
     data = json.loads(resp)
+
     scoped_data = data['query']['pages']
-    print scoped_data
     page_id = data['query']['pages'].keys()[0]
     wiki_url = 'https://en.m.wikipedia.org/?curid=%s'%(page_id)
     try:
@@ -41,7 +54,8 @@ def wikisearch(title='tomato'):
 def post_facebook_message(fbid,message_text):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	
-	output_text = wikisearch(message_text)
+	#output_text = wikisearch(message_text)
+	output_text = chuck()
 
 	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
@@ -76,6 +90,4 @@ class MyChatBotView(generic.View):
 
 		return HttpResponse()  
 
-def index(request):
-	t = request.GET['text'] or 'foo'
-	return HttpResponse(wikisearch(t))
+
