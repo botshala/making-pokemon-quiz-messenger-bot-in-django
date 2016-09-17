@@ -114,8 +114,8 @@ def post_facebook_message(fbid,message_text):
 			              },
 			              {
 			                "type":"postback",
-			                "title":"Start Chatting",
-			                "payload":"DEVELOPER_DEFINED_PAYLOAD"
+			                "title":"Another Joke",
+			                "payload":"RANDOM_JOKE"
 			              }              
 			            ]
 			          }
@@ -141,8 +141,11 @@ def handle_postback(fbid,payload):
 	output_text = 'Payload Recieved: ' + payload
 	logg(payload,symbol='*')
 
-	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
-	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+	if payload == 'RANDOM_JOKE':
+		post_facebook_message(fbid,'foo')
+
+	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 		
 def logg(message,symbol='-'):
 	print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
