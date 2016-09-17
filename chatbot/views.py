@@ -28,7 +28,7 @@ def chuck():
 	url = 'https://api.chucknorris.io/jokes/random'
 	resp = requests.get(url=url).text
 	data = json.loads(resp)
-	return data['value']
+	return data['value'], data['url']
 
 
 def wikisearch(title='tomato'):
@@ -56,7 +56,7 @@ def post_facebook_message(fbid,message_text):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	
 	#output_text = wikisearch(message_text)
-	output_text = chuck()
+	output_text,output_url = chuck()
 	output_text = output_text.replace("Chuck Norris", "Rajnikanth")
 
 	response_msg_with_button = {
@@ -74,7 +74,7 @@ def post_facebook_message(fbid,message_text):
 				        "buttons":[
 				          {
 				            "type":"web_url",
-				            "url":"https://petersapparel.parseapp.com",
+				            "url":output_url,
 				            "title":"Show Website"
 				          },
 				          {
@@ -93,7 +93,11 @@ def post_facebook_message(fbid,message_text):
 
 	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
 	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_with_button)
+	
+	status = requests.post(post_message_url, 
+			headers={"Content-Type": "application/json"},
+			data=response_msg_with_button)
+	
 	print status.json()
 
 
