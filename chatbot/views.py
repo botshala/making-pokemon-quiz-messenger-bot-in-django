@@ -105,7 +105,7 @@ def post_facebook_message(fbid,message_text):
 			            "title":output_text,
 			            "item_url":"https://api.chucknorris.io",
 			            "image_url":output_image,
-			            "subtitle":"he he :D",
+			            "subtitle":"he he =D",
 			            "buttons":[
 			              {
 			                "type":"web_url",
