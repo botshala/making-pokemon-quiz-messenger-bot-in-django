@@ -104,10 +104,13 @@ def post_facebook_message(fbid,message_text):
 def handle_postback(fbid,payload):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	output_text = 'Payload Recieved: ' + payload
+	logg(payload,symbol='*')
 
 	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 		
+def logg(message,symbol='-'):
+	print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
 
 class MyChatBotView(generic.View):
 	def get (self, request, *args, **kwargs):
@@ -122,7 +125,8 @@ class MyChatBotView(generic.View):
 
 	def post(self, request, *args, **kwargs):
 		incoming_message= json.loads(self.request.body.decode('utf-8'))
-		print incoming_message
+		
+		logg(incoming_message)
 
 		for entry in incoming_message['entry']:
 			for message in entry['messaging']:
