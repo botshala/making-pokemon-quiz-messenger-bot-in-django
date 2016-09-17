@@ -104,7 +104,7 @@ def post_facebook_message(fbid,message_text):
 			          {
 			            "title":output_text,
 			            "item_url":"https://api.chucknorris.io",
-			            "image_url":output_image,
+			            "image_url":'http://thecatapi.com/api/images/get?format=src&type=png',
 			            "subtitle":"he he =D",
 			            "buttons":[
 			              {
