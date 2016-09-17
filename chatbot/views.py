@@ -19,8 +19,8 @@ PAGE_ACCESS_TOKEN = 'EAAZAyhaPaTVoBALdXcRNojTqUTCZBdpNxHicITYZBFfw8jtqyMwGRGf2bE
 
 
 def index(request):
-	post_facebook_message('1406994739523556','hi')
-	handle_postback('1406994739523556','hi')
+	post_facebook_message('1123','hi')
+	handle_postback('1asd','hi')
 	#t = request.GET['text'] or 'foo'
 	output_text = chuck()
 	return HttpResponse(output_text)
@@ -29,7 +29,7 @@ def chuck():
 	url = 'https://api.chucknorris.io/jokes/random'
 	resp = requests.get(url=url).text
 	data = json.loads(resp)
-	return data['value'], data['url']
+	return data['value'], data['url'], data['icon_url']
 
 
 def wikisearch(title='tomato'):
@@ -57,7 +57,7 @@ def post_facebook_message(fbid,message_text):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	
 	#output_text = wikisearch(message_text)
-	output_text,output_url = chuck()
+	output_text,output_url,output_image = chuck()
 	output_text = output_text.replace("Chuck Norris", "Rajnikanth")
 
 	response_msg_with_button = {
@@ -90,14 +90,49 @@ def post_facebook_message(fbid,message_text):
 
 	}
 
-	response_msg_with_button = json.dumps(response_msg_with_button)
+	response_msg_generic = {
 
+			"recipient":{
+			    "id":fbid
+			  },
+			  "message":{
+			    "attachment":{
+			      "type":"template",
+			      "payload":{
+			        "template_type":"generic",
+			        "elements":[
+			          {
+			            "title":output_text,
+			            "item_url":"https://api.chucknorris.io",
+			            "image_url":output_image,
+			            "subtitle":"he he :D",
+			            "buttons":[
+			              {
+			                "type":"web_url",
+			                "url":output_url,
+			                "title":"View Website"
+			              },
+			              {
+			                "type":"postback",
+			                "title":"Start Chatting",
+			                "payload":"DEVELOPER_DEFINED_PAYLOAD"
+			              }              
+			            ]
+			          }
+			        ]
+			      }
+			    }
+			  }
+
+	}
+
+	response_msg_with_button = json.dumps(response_msg_with_button)
+	response_msg_generic = json.dumps(response_msg_generic)
 	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
 	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	
 	status = requests.post(post_message_url, 
 			headers={"Content-Type": "application/json"},
-			data=response_msg_with_button)
+			data=response_msg_generic)
 	
 	print status.json()
 
@@ -137,14 +172,14 @@ class MyChatBotView(generic.View):
 					else:
 						pass
 				except Exception as e:
-					print e
+					logg(e,symbol='-140-')
 				
 				try:
 					sender_id = message['sender']['id']
 					message_text = message['message']['text']
 					post_facebook_message(sender_id,message_text) 
 				except Exception as e:
-					print e
+					logg(e,symbol='-147-')
 
 		return HttpResponse()  
 
