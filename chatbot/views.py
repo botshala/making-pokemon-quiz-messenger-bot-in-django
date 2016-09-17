@@ -19,6 +19,7 @@ PAGE_ACCESS_TOKEN = 'EAAZAyhaPaTVoBALdXcRNojTqUTCZBdpNxHicITYZBFfw8jtqyMwGRGf2bE
 
 
 def index(request):
+	post_facebook_message('1406994739523556','hi')
 	#t = request.GET['text'] or 'foo'
 	output_text = chuck()
 	return HttpResponse(output_text)
@@ -58,8 +59,41 @@ def post_facebook_message(fbid,message_text):
 	output_text = chuck()
 	output_text = output_text.replace("Chuck Norris", "Rajnikanth")
 
-	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
-	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+	response_msg_with_button = {
+
+				"recipient":{
+				    "id":fbid
+				  },
+
+				  "message":{
+				    "attachment":{
+				      "type":"template",
+				      "payload":{
+				        "template_type":"button",
+				        "text":output_text,
+				        "buttons":[
+				          {
+				            "type":"web_url",
+				            "url":"https://petersapparel.parseapp.com",
+				            "title":"Show Website"
+				          },
+				          {
+				            "type":"postback",
+				            "title":"Start Chatting",
+				            "payload":"USER_DEFINED_PAYLOAD"
+				          }
+				        ]
+				      }
+				    }
+				  }
+
+	}
+
+	response_msg_with_button = json.dumps(response_msg_with_button)
+
+	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_with_button)
 	print status.json()
 
 
