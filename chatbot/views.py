@@ -189,7 +189,7 @@ def post_facebook_message(fbid,message_text):
 	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 	status = requests.post(post_message_url, 
 			headers={"Content-Type": "application/json"},
-			data=response_msg_with_button)
+			data=response_msg_quickreply)
 	
 	print status.json()
 
