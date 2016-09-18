@@ -118,6 +118,24 @@ def post_facebook_message(fbid,message_text):
 			                "payload":"RANDOM_JOKE"
 			              }              
 			            ]
+			          },
+			          {
+			            "title":output_text,
+			            "item_url":"https://api.chucknorris.io",
+			            "image_url":'http://thecatapi.com/api/images/get?format=src&type=gif',
+			            "subtitle":"he he =D",
+			            "buttons":[
+			              {
+			                "type":"web_url",
+			                "url":output_url,
+			                "title":"View Website"
+			              },
+			              {
+			                "type":"postback",
+			                "title":"Another Joke",
+			                "payload":"RANDOM_JOKE"
+			              }              
+			            ]
 			          }
 			        ]
 			      }
