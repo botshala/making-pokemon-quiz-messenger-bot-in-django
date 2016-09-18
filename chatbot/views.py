@@ -37,7 +37,8 @@ def quizGen():
 
 def index(request):
 	post_facebook_message('as','asd')
-
+	handle_quickreply("as","asd")
+	
 	output_text = quizGen()
 	output_text = pprint.pformat(output_text)
 	return HttpResponse(output_text, content_type='application/json')
@@ -190,22 +191,23 @@ def post_facebook_message(fbid,message_text):
 			      {
 			        "content_type":"text",
 			        "title":quiz['options'][0],
-			        "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_RED"
+			        #"payload": check(quiz['answer'][0],quiz['options'][0])
+			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][0])
 			      },
 			      {
 			        "content_type":"text",
 			        "title":quiz['options'][1],
-			        "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_GREEN"
+			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][1])
 			      },
 			      {
 			        "content_type":"text",
 			        "title":quiz['options'][2],
-			        "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_GREEN"
+			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][2])
 			      },
 			      {
 			        "content_type":"text",
 			        "title":quiz['options'][3],
-			        "payload":"DEVELOPER_DEFINED_PAYLOAD_FOR_PICKING_GREEN"
+			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][3])
 			      }
 			    ]
 			  }
@@ -246,6 +248,12 @@ def logg(message,symbol='-'):
 def handle_quickreply(fbid,payload):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	logg(payload,symbol='-QR-')
+
+	if payload.split(':')[0] == payload.split(':')[-1]:
+		 logg("COrrect Answer",symbol='-YES-')
+	else:
+		logg("Wrong Answer",symbol='-NO-')
+
 	return
 
 class MyChatBotView(generic.View):
