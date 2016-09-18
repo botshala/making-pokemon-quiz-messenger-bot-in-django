@@ -212,9 +212,7 @@ def logg(message,symbol='-'):
 
 def handle_quickreply(fbid,payload):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-
 	logg(payload,symbol='-QR-')
-
 	return
 
 class MyChatBotView(generic.View):
@@ -245,8 +243,9 @@ class MyChatBotView(generic.View):
 					logg(e,symbol='-140-')
 
 				try:
-					if 'quick_reply' in message:
-						handle_quickreply(message['sender']['id'],message['postback']['payload'])
+					if 'quick_reply' in message['message']:
+						handle_quickreply(message['sender']['id'],
+							message['message']['quick_reply']['payload'])
 					else:
 						pass
 				except Exception as e:
