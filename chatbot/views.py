@@ -36,6 +36,8 @@ def quizGen():
 
 
 def index(request):
+	post_facebook_message('as','asd')
+
 	output_text = quizGen()
 	output_text = pprint.pformat(output_text)
 	return HttpResponse(output_text, content_type='application/json')
@@ -203,9 +205,17 @@ def handle_postback(fbid,payload):
 
 	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
 	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-		
+	return
+
 def logg(message,symbol='-'):
 	print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
+
+def handle_quickreply(fbid,payload):
+	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+
+	logg(payload,symbol='-QR-')
+
+	return
 
 class MyChatBotView(generic.View):
 	def get (self, request, *args, **kwargs):
@@ -229,6 +239,14 @@ class MyChatBotView(generic.View):
 				try:
 					if 'postback' in message:
 						handle_postback(message['sender']['id'],message['postback']['payload'])
+					else:
+						pass
+				except Exception as e:
+					logg(e,symbol='-140-')
+
+				try:
+					if 'quick_reply' in message:
+						handle_quickreply(message['sender']['id'],message['postback']['payload'])
 					else:
 						pass
 				except Exception as e:
