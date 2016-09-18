@@ -38,7 +38,7 @@ def quizGen():
 def index(request):
 	post_facebook_message('as','asd')
 	handle_quickreply("as","asd")
-	
+
 	output_text = quizGen()
 	output_text = pprint.pformat(output_text)
 	return HttpResponse(output_text, content_type='application/json')
@@ -246,14 +246,22 @@ def logg(message,symbol='-'):
 	print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
 
 def handle_quickreply(fbid,payload):
+	if not payload:
+		return
+
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 	logg(payload,symbol='-QR-')
 
 	if payload.split(':')[0] == payload.split(':')[-1]:
 		 logg("COrrect Answer",symbol='-YES-')
+		 output_text = 'Correct Answer'
 	else:
 		logg("Wrong Answer",symbol='-NO-')
+		output_text = 'Wrong answer'
 
+	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+		
 	return
 
 class MyChatBotView(generic.View):
