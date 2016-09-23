@@ -34,8 +34,26 @@ def quizGen():
 
 	return dict(answer=answer,options=options)
 
+def set_greeting_text():
+	post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
+	
+	request_msg = {
+		"setting_type":"greeting",
+		  "greeting":{
+		    "text":"Pokemon quiz bot"
+		  }
+	}
+	response_msg = json.dumps(request_msg)
+
+	status = requests.post(post_message_url, 
+				headers={"Content-Type": "application/json"},
+				data=response_msg)
+
+	logg(status.text,symbol='--GR--')
+
 
 def index(request):
+	set_greeting_text()
 	post_facebook_message('as','asd')
 	handle_quickreply("as","asd")
 
@@ -259,8 +277,12 @@ def handle_quickreply(fbid,payload):
 		logg("Wrong Answer",symbol='-NO-')
 		output_text = 'Wrong answer'
 
-	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
-	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+	response_msg = json.dumps({"recipient":{"id":fbid}, 
+		"message":{"text":output_text}})
+
+	status = requests.post(post_message_url, 
+		headers={"Content-Type": "application/json"},
+		data=response_msg)
 		
 	return
 
