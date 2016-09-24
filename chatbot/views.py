@@ -300,7 +300,7 @@ def handle_quickreply(fbid,payload):
 			    "attachment":{
 			      "type":"image",
 			      "payload":{
-			        "url": giphy_image_url
+			        "url": quiz['answer'][1]
 			      }
 			    }
 			  }
