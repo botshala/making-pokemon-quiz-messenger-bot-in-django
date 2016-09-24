@@ -116,7 +116,7 @@ def post_facebook_message(fbid,message_text):
     matching_colour = search_colour(message_text)
     output_text = "%s : %s"%(matching_colour['colour_name'],matching_colour['colour_hex'])
 
-    image_url='https://dummyimage.com/100x100/%s/fffff.png&text=%s'%(matching_colour['colour_hex'][1:],
+    image_url='https://dummyimage.com/300x300/%s/fffff.png&text=%s'%(matching_colour['colour_hex'][1:],
                     matching_colour['colour_hex'])
 
     response_msg_image = {
