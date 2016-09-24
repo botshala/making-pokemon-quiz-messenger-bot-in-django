@@ -117,7 +117,9 @@ def post_facebook_message(fbid,message_text):
     output_text = "%s : %s"%(matching_colour['colour_name'],matching_colour['colour_hex'])
 
     image_url='https://dummyimage.com/300x300/%s/fffff.png&text=%s'%(matching_colour['colour_hex'][1:],
-                    matching_colour['colour_hex'])
+                    matching_colour['colour_hex'][1:])
+
+    logg(image_url,symbol='-IMAGEURL-')
 
     response_msg_image = {
 
@@ -134,6 +136,36 @@ def post_facebook_message(fbid,message_text):
               }
 
     } 
+
+    response_msg_image = {
+
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"template",
+                  "payload":{
+                    "template_type":"generic",
+                    "elements":[
+                      {
+                        "title":matching_colour['colour_name'],
+                        "item_url":"https://api.chucknorris.io",
+                        "image_url":image_url,
+                        "subtitle":"he he =D",
+                        "buttons":[
+                          {
+                            "type":"element_share"
+                          }         
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+
+    }
+
     response_msg_image = json.dumps(response_msg_image)
     
     requests.post(post_message_url, 
