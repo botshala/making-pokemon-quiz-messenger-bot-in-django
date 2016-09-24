@@ -38,9 +38,14 @@ def scrape_spreadsheet_colourbro():
     return arr
 
 def search_colour(text):
-    for colour in scrape_spreadsheet_colourbro():
+    colour_arr = scrape_spreadsheet_colourbro()
+
+    for colour in colour_arr:
         if text in colour['colour_name']:
             return colour
+
+    random.shuffle(colour_arr)
+    return colour_arr[0]
 
 def quizGen():
     pokemon_arr = []
@@ -74,6 +79,7 @@ def set_greeting_text():
 
 
 def index(request):
+    #post_facebook_message('asd','asdasd')
     search_string = request.GET.get('text')
     output_text = search_colour(search_string)
     return HttpResponse(output_text['colour_name'], content_type='application/json')
@@ -109,7 +115,7 @@ def post_facebook_message(fbid,message_text):
     
     matching_colour = search_colour(message_text)
     output_text = "%s : %s"%(matching_colour['colour_name'],matching_colour['colour_hex'])
-    
+
     response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
     requests.post(post_message_url, 
                     headers={"Content-Type": "application/json"},
