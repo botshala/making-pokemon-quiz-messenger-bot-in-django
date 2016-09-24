@@ -53,12 +53,13 @@ def set_greeting_text():
 
 
 def index(request):
-	set_greeting_text()
+	#set_greeting_text()
 	post_facebook_message('as','asd')
 	handle_quickreply("as","asd")
 
 	output_text = quizGen()
 	output_text = pprint.pformat(output_text)
+	output_text = giphysearch()
 	return HttpResponse(output_text, content_type='application/json')
 
 def chuck():
@@ -66,6 +67,14 @@ def chuck():
 	resp = requests.get(url=url).text
 	data = json.loads(resp)
 	return data['value'], data['url'], data['icon_url']
+
+def giphysearch(keyword='Yes'):
+	url = 'http://api.giphy.com/v1/gifs/search?q=%s&api_key=dc6zaTOxFJmzC'%(keyword)
+	resp = requests.get(url=url).text
+	data = json.loads(resp)
+	return data['data'][0]['images']['fixed_height']['url']
+	
+
 
 
 def wikisearch(title='tomato'):
@@ -191,7 +200,7 @@ def post_facebook_message(fbid,message_text):
 			    "attachment":{
 			      "type":"image",
 			      "payload":{
-			        "url":quiz['answer'][1]
+			        "url": giphysearch()
 			      }
 			    }
 			  }
@@ -273,16 +282,38 @@ def handle_quickreply(fbid,payload):
 	if payload.split(':')[0] == payload.split(':')[-1]:
 		 logg("COrrect Answer",symbol='-YES-')
 		 output_text = 'Correct Answer'
+		 giphy_image_url = giphysearch(keyword='Yes,right,correct')
 	else:
 		logg("Wrong Answer",symbol='-NO-')
 		output_text = 'Wrong answer'
+		giphy_image_url =giphysearch(keyword='NO,wrong,bad')
 
 	response_msg = json.dumps({"recipient":{"id":fbid}, 
 		"message":{"text":output_text}})
 
+	response_msg_image = {
+
+			"recipient":{
+			    "id":fbid
+			  },
+			  "message":{
+			    "attachment":{
+			      "type":"image",
+			      "payload":{
+			        "url": giphy_image_url
+			      }
+			    }
+			  }
+
+	} 
+
 	status = requests.post(post_message_url, 
 		headers={"Content-Type": "application/json"},
 		data=response_msg)
+
+	status = requests.post(post_message_url, 
+		headers={"Content-Type": "application/json"},
+		data=response_msg_image)
 		
 	return
 
@@ -312,7 +343,7 @@ class MyChatBotView(generic.View):
 					else:
 						pass
 				except Exception as e:
-					logg(e,symbol='-140-')
+					logg(e,symbol='-315-')
 
 				try:
 					if 'quick_reply' in message['message']:
@@ -322,14 +353,14 @@ class MyChatBotView(generic.View):
 					else:
 						pass
 				except Exception as e:
-					logg(e,symbol='-140-')
+					logg(e,symbol='-325-')
 				
 				try:
 					sender_id = message['sender']['id']
 					message_text = message['message']['text']
 					post_facebook_message(sender_id,message_text) 
 				except Exception as e:
-					logg(e,symbol='-147-')
+					logg(e,symbol='-332-')
 
 		return HttpResponse()  
 
