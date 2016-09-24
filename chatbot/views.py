@@ -200,7 +200,7 @@ def post_facebook_message(fbid,message_text):
 			    "attachment":{
 			      "type":"image",
 			      "payload":{
-			        "url": giphysearch()
+			        "url": quiz['answer'][1]
 			      }
 			    }
 			  }
@@ -300,7 +300,7 @@ def handle_quickreply(fbid,payload):
 			    "attachment":{
 			      "type":"image",
 			      "payload":{
-			        "url": quiz['answer'][1]
+			        "url": giphy_image_url
 			      }
 			    }
 			  }
