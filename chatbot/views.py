@@ -72,7 +72,8 @@ def giphysearch(keyword='Yes'):
 	url = 'http://api.giphy.com/v1/gifs/search?q=%s&api_key=dc6zaTOxFJmzC'%(keyword)
 	resp = requests.get(url=url).text
 	data = json.loads(resp)
-	return data['data'][0]['images']['fixed_width_downsampled']['url']
+	random_int = random.randint(0,len(data['data']) -1)
+	return data['data'][random_int]['images']['fixed_width_downsampled']['url']
 
 
 def wikisearch(title='tomato'):
