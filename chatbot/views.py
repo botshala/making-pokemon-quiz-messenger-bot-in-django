@@ -306,7 +306,8 @@ def handle_quickreply(fbid,payload):
 			  }
 
 	} 
-
+	response_msg_image = json.dumps(response_msg_image)
+	
 	status = requests.post(post_message_url, 
 		headers={"Content-Type": "application/json"},
 		data=response_msg)
