@@ -24,66 +24,65 @@ pokemon_data = {"Bulbasaur":"http://img.pokemondb.net/artwork/bulbasaur.jpg","Iv
 
 
 def scrape_spreadsheet_colourbro():
-	url = 'https://spreadsheets.google.com/feeds/list/1FChO1iS-SnEw9a3JUnUT1ZInLfCaETpvYb7Y_2egOq0/od6/public/values?alt=json'
+    url = 'https://spreadsheets.google.com/feeds/list/1FChO1iS-SnEw9a3JUnUT1ZInLfCaETpvYb7Y_2egOq0/od6/public/values?alt=json'
 
-	resp = requests.get(url=url)
+    resp = requests.get(url=url)
     data = json.loads(resp.text)
     arr =[]
     for entry in data['feed']['entry']:
-        print entry['gsx$colour_name']['$t']
-        d = dict(colour_name = entry['gsx$colour_name']['$t'],
-                colour_hex = entry['gsx$colour_hex']['$t']) 
+        print entry['gsx$name']['$t']
+        d = dict(colour_name = entry['gsx$name']['$t'],
+                colour_hex = entry['gsx$colour1']['$t']) 
         arr.append(d)
 
     return arr
 
+def search_colour(text):
+    for colour in scrape_spreadsheet_colourbro():
+        if text in colour['colour_name']:
+            return colour
 
 def quizGen():
-	pokemon_arr = []
-	for key, value in pokemon_data.iteritems():
-		pokemon_arr.append([key,value])
-	random.shuffle(pokemon_arr)
+    pokemon_arr = []
+    for key, value in pokemon_data.iteritems():
+        pokemon_arr.append([key,value])
+    random.shuffle(pokemon_arr)
 
-	answer = pokemon_arr[0]
+    answer = pokemon_arr[0]
 
-	options = [i[0] for i in pokemon_arr[:4]]
-	random.shuffle(options)
+    options = [i[0] for i in pokemon_arr[:4]]
+    random.shuffle(options)
 
-	return dict(answer=answer,options=options)
+    return dict(answer=answer,options=options)
 
 def set_greeting_text():
-	post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
-	
-	request_msg = {
-		"setting_type":"greeting",
-		  "greeting":{
-		    "text":"Pokemon quiz bot"
-		  }
-	}
-	response_msg = json.dumps(request_msg)
+    post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
+    
+    request_msg = {
+        "setting_type":"greeting",
+          "greeting":{
+            "text":"Pokemon quiz bot"
+          }
+    }
+    response_msg = json.dumps(request_msg)
 
-	status = requests.post(post_message_url, 
-				headers={"Content-Type": "application/json"},
-				data=response_msg)
+    status = requests.post(post_message_url, 
+                headers={"Content-Type": "application/json"},
+                data=response_msg)
 
-	logg(status.text,symbol='--GR--')
+    logg(status.text,symbol='--GR--')
 
 
 def index(request):
-	#set_greeting_text()
-	post_facebook_message('as','asd')
-	handle_quickreply("as","asd")
-
-	output_text = quizGen()
-	output_text = pprint.pformat(output_text)
-	output_text = giphysearch()
-	return HttpResponse(output_text, content_type='application/json')
+    search_string = request.GET.get('text')
+    output_text = search_colour(search_string)
+    return HttpResponse(output_text['colour_name'], content_type='application/json')
 
 def chuck():
-	url = 'https://api.chucknorris.io/jokes/random'
-	resp = requests.get(url=url).text
-	data = json.loads(resp)
-	return data['value'], data['url'], data['icon_url']
+    url = 'https://api.chucknorris.io/jokes/random'
+    resp = requests.get(url=url).text
+    data = json.loads(resp)
+    return data['value'], data['url'], data['icon_url']
 
 def wikisearch(title='tomato'):
     url = 'https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro=&explaintext=&titles=%s'%(title)
@@ -106,269 +105,283 @@ def wikisearch(title='tomato'):
     return wiki_content
 
 def post_facebook_message(fbid,message_text):
-	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-	
-	#output_text = wikisearch(message_text)
-	output_text,output_url,output_image = chuck()
-	output_text = output_text.replace("Chuck Norris", "Rajnikanth")
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    
+    matching_colour = search_colour(message_text)
+    output_text = "%s : %s"%(matching_colour['colour_name'],matching_colour['colour_hex'])
+    
+    response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+    requests.post(post_message_url, 
+                    headers={"Content-Type": "application/json"},
+                    data=response_msg)
 
-	quiz = quizGen()
 
-	response_msg_with_button = {
+def post_facebook_message_old(fbid,message_text):
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    
+    #output_text = wikisearch(message_text)
+    output_text,output_url,output_image = chuck()
+    output_text = output_text.replace("Chuck Norris", "Rajnikanth")
 
-				"recipient":{
-				    "id":fbid
-				  },
+    quiz = quizGen()
 
-				  "message":{
-				    "attachment":{
-				      "type":"template",
-				      "payload":{
-				        "template_type":"button",
-				        "text":output_text,
-				        "buttons":[
-				          {
-				            "type":"web_url",
-				            "url":output_url,
-				            "title":"Show Website"
-				          },
-				          {
-				            "type":"postback",
-				            "title":"Start Chatting",
-				            "payload":"USER_DEFINED_PAYLOAD"
-				          }
-				        ]
-				      }
-				    }
-				  }
+    response_msg_with_button = {
 
-	}
+                "recipient":{
+                    "id":fbid
+                  },
 
-	response_msg_generic = {
+                  "message":{
+                    "attachment":{
+                      "type":"template",
+                      "payload":{
+                        "template_type":"button",
+                        "text":output_text,
+                        "buttons":[
+                          {
+                            "type":"web_url",
+                            "url":output_url,
+                            "title":"Show Website"
+                          },
+                          {
+                            "type":"postback",
+                            "title":"Start Chatting",
+                            "payload":"USER_DEFINED_PAYLOAD"
+                          }
+                        ]
+                      }
+                    }
+                  }
 
-			"recipient":{
-			    "id":fbid
-			  },
-			  "message":{
-			    "attachment":{
-			      "type":"template",
-			      "payload":{
-			        "template_type":"generic",
-			        "elements":[
-			          {
-			            "title":output_text,
-			            "item_url":"https://api.chucknorris.io",
-			            "image_url":'http://thecatapi.com/api/images/get?format=src&type=gif',
-			            "subtitle":"he he =D",
-			            "buttons":[
-			              {
-			                "type":"web_url",
-			                "url":output_url,
-			                "title":"View Website"
-			              },
-			              {
-			                "type":"postback",
-			                "title":"Another Joke",
-			                "payload":"RANDOM_JOKE"
-			              }              
-			            ]
-			          },
-			          {
-			            "title":output_text,
-			            "item_url":"https://api.chucknorris.io",
-			            "image_url":'http://thecatapi.com/api/images/get?format=src&type=gif',
-			            "subtitle":"he he =D",
-			            "buttons":[
-			              {
-			                "type":"web_url",
-			                "url":output_url,
-			                "title":"View Website"
-			              },
-			              {
-			                "type":"postback",
-			                "title":"Another Joke",
-			                "payload":"RANDOM_JOKE"
-			              }              
-			            ]
-			          }
-			        ]
-			      }
-			    }
-			  }
+    }
 
-	}
+    response_msg_generic = {
 
-	response_msg_image = {
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"template",
+                  "payload":{
+                    "template_type":"generic",
+                    "elements":[
+                      {
+                        "title":output_text,
+                        "item_url":"https://api.chucknorris.io",
+                        "image_url":'http://thecatapi.com/api/images/get?format=src&type=gif',
+                        "subtitle":"he he =D",
+                        "buttons":[
+                          {
+                            "type":"web_url",
+                            "url":output_url,
+                            "title":"View Website"
+                          },
+                          {
+                            "type":"postback",
+                            "title":"Another Joke",
+                            "payload":"RANDOM_JOKE"
+                          }              
+                        ]
+                      },
+                      {
+                        "title":output_text,
+                        "item_url":"https://api.chucknorris.io",
+                        "image_url":'http://thecatapi.com/api/images/get?format=src&type=gif',
+                        "subtitle":"he he =D",
+                        "buttons":[
+                          {
+                            "type":"web_url",
+                            "url":output_url,
+                            "title":"View Website"
+                          },
+                          {
+                            "type":"postback",
+                            "title":"Another Joke",
+                            "payload":"RANDOM_JOKE"
+                          }              
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
 
-			"recipient":{
-			    "id":fbid
-			  },
-			  "message":{
-			    "attachment":{
-			      "type":"image",
-			      "payload":{
-			        "url": quiz['answer'][1]
-			      }
-			    }
-			  }
+    }
 
-	} 
+    response_msg_image = {
 
-	response_msg_quickreply = {
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"image",
+                  "payload":{
+                    "url": quiz['answer'][1]
+                  }
+                }
+              }
 
-			"recipient":{
-			    "id":fbid
-			  },
-			  "message":{
-			    "text":"Which Pokemon is this ?",
-			    "quick_replies":[
-			      {
-			        "content_type":"text",
-			        "title":quiz['options'][0],
-			        #"payload": check(quiz['answer'][0],quiz['options'][0])
-			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][0])
-			      },
-			      {
-			        "content_type":"text",
-			        "title":quiz['options'][1],
-			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][1])
-			      },
-			      {
-			        "content_type":"text",
-			        "title":quiz['options'][2],
-			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][2])
-			      },
-			      {
-			        "content_type":"text",
-			        "title":quiz['options'][3],
-			        "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][3])
-			      }
-			    ]
-			  }
+    } 
 
-	}
+    response_msg_quickreply = {
 
-	response_msg_with_button = json.dumps(response_msg_with_button)
-	response_msg_generic = json.dumps(response_msg_generic)
-	response_msg_quickreply = json.dumps(response_msg_quickreply)
-	response_msg_image = json.dumps(response_msg_image)
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "text":"Which Pokemon is this ?",
+                "quick_replies":[
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][0],
+                    #"payload": check(quiz['answer'][0],quiz['options'][0])
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][0])
+                  },
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][1],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][1])
+                  },
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][2],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][2])
+                  },
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][3],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][3])
+                  }
+                ]
+              }
 
-	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
-	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	requests.post(post_message_url, 
-			headers={"Content-Type": "application/json"},
-			data=response_msg_image)
+    }
 
-	requests.post(post_message_url, 
-			headers={"Content-Type": "application/json"},
-			data=response_msg_quickreply)
+    response_msg_with_button = json.dumps(response_msg_with_button)
+    response_msg_generic = json.dumps(response_msg_generic)
+    response_msg_quickreply = json.dumps(response_msg_quickreply)
+    response_msg_image = json.dumps(response_msg_image)
+
+    output_text = search_colour(message_text)
+    response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+    status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+    
+    # requests.post(post_message_url, 
+    #         headers={"Content-Type": "application/json"},
+    #         data=response_msg_image)
+
+    # requests.post(post_message_url, 
+    #         headers={"Content-Type": "application/json"},
+    #         data=response_msg_quickreply)
 
 def handle_postback(fbid,payload):
-	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-	output_text = 'Payload Recieved: ' + payload
-	logg(payload,symbol='*')
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    output_text = 'Payload Recieved: ' + payload
+    logg(payload,symbol='*')
 
-	if payload == 'RANDOM_JOKE':
-		post_facebook_message(fbid,'foo')
+    if payload == 'RANDOM_JOKE':
+        post_facebook_message(fbid,'foo')
 
-	#response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
-	#status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	return
+    #response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":output_text}})
+    #status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+    return
 
 def logg(message,symbol='-'):
-	print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
+    print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
 
 def giphysearch(keyword='Yes'):
-	url = 'http://api.giphy.com/v1/gifs/search?q=%s&api_key=dc6zaTOxFJmzC'%(keyword)
-	resp = requests.get(url=url).text
-	data = json.loads(resp)
-	random_int = random.randint(0,len(data['data']) -1)
-	return data['data'][random_int]['images']['fixed_width_downsampled']['url']
+    url = 'http://api.giphy.com/v1/gifs/search?q=%s&api_key=dc6zaTOxFJmzC'%(keyword)
+    resp = requests.get(url=url).text
+    data = json.loads(resp)
+    random_int = random.randint(0,len(data['data']) -1)
+    return data['data'][random_int]['images']['fixed_width_downsampled']['url']
 
 def handle_quickreply(fbid,payload):
-	if not payload:
-		return
-	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-	logg(payload,symbol='-QR-')
-	if payload.split(':')[0] == payload.split(':')[-1]:
-		 logg("COrrect Answer",symbol='-YES-')
-		 output_text = 'Correct Answer'
-		 giphy_image_url = giphysearch(keyword='Yes,right,correct')
-	else:
-		logg("Wrong Answer",symbol='-NO-')
-		output_text = 'Wrong answer'
-		giphy_image_url =giphysearch(keyword='NO,wrong,bad')
-	response_msg = json.dumps({"recipient":{"id":fbid}, 
-		"message":{"text":output_text}})
-	response_msg_image = {
+    if not payload:
+        return
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    logg(payload,symbol='-QR-')
+    if payload.split(':')[0] == payload.split(':')[-1]:
+         logg("COrrect Answer",symbol='-YES-')
+         output_text = 'Correct Answer'
+         giphy_image_url = giphysearch(keyword='Yes,right,correct')
+    else:
+        logg("Wrong Answer",symbol='-NO-')
+        output_text = 'Wrong answer'
+        giphy_image_url =giphysearch(keyword='NO,wrong,bad')
+    response_msg = json.dumps({"recipient":{"id":fbid}, 
+        "message":{"text":output_text}})
+    response_msg_image = {
 
-			"recipient":{
-			    "id":fbid
-			  },
-			  "message":{
-			    "attachment":{
-			      "type":"image",
-			      "payload":{
-			        "url": giphy_image_url
-			      }
-			    }
-			  }
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"image",
+                  "payload":{
+                    "url": giphy_image_url
+                  }
+                }
+              }
 
-	} 
-	response_msg_image = json.dumps(response_msg_image)
-	status = requests.post(post_message_url, 
-		headers={"Content-Type": "application/json"},
-		data=response_msg)
-	status = requests.post(post_message_url, 
-		headers={"Content-Type": "application/json"},
-		data=response_msg_image)
-	return
+    } 
+    response_msg_image = json.dumps(response_msg_image)
+    status = requests.post(post_message_url, 
+        headers={"Content-Type": "application/json"},
+        data=response_msg)
+    status = requests.post(post_message_url, 
+        headers={"Content-Type": "application/json"},
+        data=response_msg_image)
+    return
 
 class MyChatBotView(generic.View):
-	def get (self, request, *args, **kwargs):
-		if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
-			return HttpResponse(self.request.GET['hub.challenge'])
-		else:
-			return HttpResponse('Oops invalid token')
+    def get (self, request, *args, **kwargs):
+        if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
+            return HttpResponse(self.request.GET['hub.challenge'])
+        else:
+            return HttpResponse('Oops invalid token')
 
-	@method_decorator(csrf_exempt)
-	def dispatch(self, request, *args, **kwargs):
-		return generic.View.dispatch(self, request, *args, **kwargs)
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return generic.View.dispatch(self, request, *args, **kwargs)
 
-	def post(self, request, *args, **kwargs):
-		incoming_message= json.loads(self.request.body.decode('utf-8'))
-		
-		logg(incoming_message)
+    def post(self, request, *args, **kwargs):
+        incoming_message= json.loads(self.request.body.decode('utf-8'))
+        
+        logg(incoming_message)
 
-		for entry in incoming_message['entry']:
-			for message in entry['messaging']:
+        for entry in incoming_message['entry']:
+            for message in entry['messaging']:
 
-				try:
-					if 'postback' in message:
-						handle_postback(message['sender']['id'],message['postback']['payload'])
-						return HttpResponse()
-					else:
-						pass
-				except Exception as e:
-					logg(e,symbol='-315-')
+                try:
+                    if 'postback' in message:
+                        handle_postback(message['sender']['id'],message['postback']['payload'])
+                        return HttpResponse()
+                    else:
+                        pass
+                except Exception as e:
+                    logg(e,symbol='-315-')
 
-				try:
-					if 'quick_reply' in message['message']:
-						handle_quickreply(message['sender']['id'],
-							message['message']['quick_reply']['payload'])
-						return HttpResponse()
-					else:
-						pass
-				except Exception as e:
-					logg(e,symbol='-325-')
-				
-				try:
-					sender_id = message['sender']['id']
-					message_text = message['message']['text']
-					post_facebook_message(sender_id,message_text) 
-				except Exception as e:
-					logg(e,symbol='-332-')
+                try:
+                    if 'quick_reply' in message['message']:
+                        handle_quickreply(message['sender']['id'],
+                            message['message']['quick_reply']['payload'])
+                        return HttpResponse()
+                    else:
+                        pass
+                except Exception as e:
+                    logg(e,symbol='-325-')
+                
+                try:
+                    sender_id = message['sender']['id']
+                    message_text = message['message']['text']
+                    post_facebook_message(sender_id,message_text) 
+                except Exception as e:
+                    logg(e,symbol='-332-')
 
-		return HttpResponse()  
+        return HttpResponse()  
 
 
