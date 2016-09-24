@@ -72,9 +72,7 @@ def giphysearch(keyword='Yes'):
 	url = 'http://api.giphy.com/v1/gifs/search?q=%s&api_key=dc6zaTOxFJmzC'%(keyword)
 	resp = requests.get(url=url).text
 	data = json.loads(resp)
-	return data['data'][0]['images']['fixed_height']['url']
-	
-
+	return data['data'][0]['images']['fixed_width_downsampled']['url']
 
 
 def wikisearch(title='tomato'):
@@ -307,7 +305,7 @@ def handle_quickreply(fbid,payload):
 
 	} 
 	response_msg_image = json.dumps(response_msg_image)
-	
+
 	status = requests.post(post_message_url, 
 		headers={"Content-Type": "application/json"},
 		data=response_msg)
