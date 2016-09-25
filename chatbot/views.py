@@ -15,6 +15,8 @@ import random
 import pprint
 # Create your views here.
 
+from timezonebot import time_converter_best
+
 VERIFY_TOKEN = '7thseptember2016'
 PAGE_ACCESS_TOKEN = 'EAABgCiBsOGwBANxjGZBjJHzORBcv7LqAWlEseYzJITKC0eqcCeB1ZCVZAyxOW8uge2CBYndm3iZBK8lLS6oWNm7ODSxzjti8WOZA4ISZCZAUEoNSBUcdDv0UNVH4SKMslHIT4yT2NSZBGZCJ8uCFatU3loZBBAvEOQZCZCHUJcvGukE6AAZDZD'
 
@@ -80,9 +82,10 @@ def set_greeting_text():
 
 def index(request):
     post_facebook_message('asd','asdasd')
-    search_string = request.GET.get('text')
+    search_string = request.GET.get('text') or 'foo'
     output_text = search_colour(search_string)
-    return HttpResponse(output_text['colour_name'], content_type='application/json')
+    output_text = time_converter_best(search_string)
+    return HttpResponse(output_text, content_type='application/json')
 
 def chuck():
     url = 'https://api.chucknorris.io/jokes/random'
